@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: lvl-api
+  profiles:
+    # Running without a profile (IDE, mvn spring-boot:run) means local development.
+    # Production sets SPRING_PROFILES_ACTIVE=prod.
+    default: local
+  threads:
+    virtual:
+      enabled: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+  mvc:
+    problemdetails:
+      enabled: true
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  shutdown: graceful
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+lvl:
+  security:
+    jwt-secret: ${LVL_JWT_SECRET:}
+    issuer: lvl-api
+    access-token-ttl: 15m
+    refresh-token-ttl: 7d
+  fx:
+    url: https://open.er-api.com/v6/latest/USD
+    ttl: 1h
+    fallback-usd-pen: 3.75
+  welcome-bonus:
+    pen: 500.00
+    usd: 50.00

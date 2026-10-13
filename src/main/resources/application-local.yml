@@ -1,0 +1,14 @@
+# Local development only: Postgres comes from compose.yaml via spring-boot-docker-compose.
+spring:
+  docker:
+    compose:
+      lifecycle-management: start-only
+
+lvl:
+  security:
+    # Development key, never used outside this profile. Production reads LVL_JWT_SECRET.
+    jwt-secret: local-dev-only-secret-change-me-0123456789abcdef
+
+logging:
+  level:
+    com.fufexo.lvl: debug

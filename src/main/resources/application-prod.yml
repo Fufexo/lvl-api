@@ -1,0 +1,16 @@
+# Production (Render + Neon). Every secret comes from the environment.
+server:
+  # Render injects PORT.
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    # jdbc:postgresql://<host>/<db>?sslmode=require
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+  docker:
+    compose:
+      enabled: false
