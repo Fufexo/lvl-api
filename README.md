@@ -103,6 +103,10 @@ Luego abre <http://localhost:8080/swagger-ui.html>.
 
 **Con IntelliJ IDEA:** *File → Open* y elige la carpeta del proyecto. IntelliJ detecta el `pom.xml`. Ejecuta `LvlApiApplication`: sin perfil activo se usa `local`, que levanta Postgres con `compose.yaml`.
 
+### Despliegue
+
+La API corre en **Render** (Docker, plan gratuito) y la base de datos en **Neon** (Postgres serverless). [`render.yaml`](render.yaml) describe el servicio. Render genera `LVL_JWT_SECRET` y solo despliega los commits que pasaron el CI. El plan gratuito duerme el servicio tras unos minutos sin tráfico, así que la primera petición tarda en responder.
+
 ### Variables en producción
 
 | Variable | Descripción |

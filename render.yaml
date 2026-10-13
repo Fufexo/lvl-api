@@ -1,0 +1,23 @@
+# Render Blueprint: Render reads this file and creates the service from the repo.
+# Secrets marked `sync: false` are entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: lvl-api
+    runtime: docker
+    plan: free
+    # Closest region to Peru; create the Neon database in AWS us-east-1 too.
+    region: virginia
+    healthCheckPath: /actuator/health
+    # Deploy only commits whose GitHub checks (tests + Docker build) passed.
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: LVL_JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
