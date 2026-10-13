@@ -23,7 +23,7 @@ API REST de [LVL](https://github.com/Fufexo/lvl-wallet), una billetera digital f
 | Lenguaje | Java 21 |
 | Framework | Spring Boot 4.1 (Web MVC, Data JPA, Security, Validation, Actuator) |
 | Arquitectura | Monolito modular verificado con Spring Modulith |
-| Base de datos | PostgreSQL 17, migraciones con Flyway |
+| Base de datos | PostgreSQL 18, migraciones con Flyway |
 | Seguridad | Spring Security OAuth2 Resource Server (JWT HS256), BCrypt |
 | Documentación | springdoc-openapi (OpenAPI 3 + Swagger UI) |
 | Tests | JUnit 5, AssertJ, MockMvcTester, Testcontainers |

@@ -1,7 +1,7 @@
 # Local database. `./mvnw spring-boot:run` starts it automatically (spring-boot-docker-compose).
 services:
   postgres:
-    image: 'postgres:17-alpine'
+    image: 'postgres:18-alpine'
     environment:
       - 'POSTGRES_DB=lvl'
       - 'POSTGRES_USER=lvl'
@@ -9,7 +9,8 @@ services:
     ports:
       - '5432'
     volumes:
-      - 'lvl-data:/var/lib/postgresql/data'
+      # Postgres 18 images keep their data under /var/lib/postgresql/<version>.
+      - 'lvl-pg18:/var/lib/postgresql'
 
 volumes:
-  lvl-data:
+  lvl-pg18:

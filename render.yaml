@@ -5,8 +5,8 @@ services:
     name: lvl-api
     runtime: docker
     plan: free
-    # Closest region to Peru; create the Neon database in AWS us-east-1 too.
-    region: virginia
+    # Same AWS region as the Neon database (us-east-2), so queries stay inside one datacenter.
+    region: ohio
     healthCheckPath: /actuator/health
     # Deploy only commits whose GitHub checks (tests + Docker build) passed.
     autoDeployTrigger: checksPass
