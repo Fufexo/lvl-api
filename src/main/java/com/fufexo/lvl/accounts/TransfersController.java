@@ -6,6 +6,10 @@ import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 import com.fufexo.lvl.shared.Amounts;
 import com.fufexo.lvl.shared.BusinessException;
+import com.fufexo.lvl.shared.ProblemDoc;
 import com.fufexo.lvl.shared.CurrencyCode;
 
 import org.springframework.http.HttpStatus;
@@ -70,6 +75,17 @@ class TransfersController {
 	@Operation(summary = "Transferir",
 			description = "A una cuenta propia (con cambio de moneda si corresponde) o a otro jugador por gamertag. "
 					+ "Reintentar con la misma Idempotency-Key devuelve la transferencia original.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "201",
+					description = "Transferencia hecha. En un reintento, la original con Idempotent-Replayed: true."),
+			@ApiResponse(responseCode = "400", description = "Datos inválidos o falta la Idempotency-Key (VALIDATION_FAILED).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))),
+			@ApiResponse(responseCode = "404", description = "Cuenta propia o jugador inexistente (ACCOUNT_NOT_FOUND, RECIPIENT_NOT_FOUND).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))),
+			@ApiResponse(responseCode = "422", description = "Saldo insuficiente o clave reutilizada con otros datos (INSUFFICIENT_FUNDS, IDEMPOTENCY_KEY_REUSED).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))),
+			@ApiResponse(responseCode = "503", description = "Tipo de cambio no disponible para un cambio de moneda (FX_UNAVAILABLE).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))) })
 	ResponseEntity<TransferView> create(@AuthenticationPrincipal Jwt jwt,
 			@Parameter(description = "Clave única por intento, de 8 a 64 caracteres (por ejemplo un UUID).")
 			@RequestHeader(IDEMPOTENCY_KEY) String idempotencyKey,

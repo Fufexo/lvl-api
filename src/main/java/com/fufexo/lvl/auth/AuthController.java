@@ -3,6 +3,10 @@ package com.fufexo.lvl.auth;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +18,7 @@ import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
 
 import com.fufexo.lvl.shared.BusinessException;
+import com.fufexo.lvl.shared.ProblemDoc;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -72,6 +77,14 @@ class AuthController {
 
 	@PostMapping("/auth/register")
 	@Operation(summary = "Crear cuenta", description = "Abre las cuentas PEN y USD con el bono de bienvenida.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "201", description = "Cuenta creada; la cookie lvl_refresh viene en Set-Cookie."),
+			@ApiResponse(responseCode = "400", description = "Datos inválidos, con el campo de cada error (VALIDATION_FAILED).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))),
+			@ApiResponse(responseCode = "409", description = "Gamertag o correo en uso (GAMERTAG_TAKEN, EMAIL_TAKEN).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))),
+			@ApiResponse(responseCode = "429", description = "Demasiados registros desde la misma dirección (TOO_MANY_ATTEMPTS).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))) })
 	ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
 		// Behind Render's proxy, forward-headers-strategy makes this the client's address.
 		var session = auth.register(request.gamertag(), request.email(), request.password(), http.getRemoteAddr());
@@ -80,6 +93,11 @@ class AuthController {
 
 	@PostMapping("/auth/login")
 	@Operation(summary = "Ingresar con gamertag o correo")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "Sesión iniciada."),
+			@ApiResponse(responseCode = "401", description = "Usuario o contraseña incorrectos (INVALID_CREDENTIALS).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))),
+			@ApiResponse(responseCode = "429", description = "Ingreso pausado tras varios intentos fallidos (TOO_MANY_ATTEMPTS).",
+					content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDoc.class))) })
 	ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
 		return withRefreshCookie(HttpStatus.OK, auth.login(request.login(), request.password()));
 	}
