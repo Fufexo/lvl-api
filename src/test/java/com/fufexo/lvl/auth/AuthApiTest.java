@@ -76,6 +76,31 @@ class AuthApiTest extends ApiTest {
 	}
 
 	@Test
+	void repeatedFailuresPauseSignInForThatAccount() {
+		Player player = signUp();
+		for (int i = 0; i < 5; i++) {
+			assertThat(login(player.gamertag(), "otra-contraseña")).hasStatus(HttpStatus.UNAUTHORIZED);
+		}
+
+		// Even the right password waits until the window passes: guessing cannot continue.
+		assertThat(login(player.gamertag(), "contraseña-segura")).hasStatus(HttpStatus.TOO_MANY_REQUESTS)
+			.bodyJson()
+			.hasPathSatisfying("$.code", (code) -> assertThat(code).asString().isEqualTo("TOO_MANY_ATTEMPTS"));
+	}
+
+	@Test
+	void passwordsBcryptCannotFullyReadAreRejectedOnTheField() {
+		// 40 characters but 80 bytes in UTF-8: above BCrypt's 72-byte limit.
+		String password = "ñ".repeat(40);
+		String gamertag = uniqueGamertag();
+
+		assertThat(register(gamertag, gamertag + "@lvl.test", password)).hasStatus(HttpStatus.BAD_REQUEST)
+			.bodyJson()
+			.hasPathSatisfying("$.errors[0].field", (field) -> assertThat(field).asString().isEqualTo("password"));
+		assertThat(login(gamertag, password)).hasStatus(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
 	void protectedEndpointsRequireAToken() {
 		assertThat(mvc.get().uri("/api/accounts")).hasStatus(HttpStatus.UNAUTHORIZED);
 		assertThat(mvc.get().uri("/api/me").header("Authorization", "Bearer no-es-un-jwt"))

@@ -75,7 +75,7 @@ class OpenErApiExchangeRates implements ExchangeRates {
 				if (cached != null) {
 					return new FxQuote(cached.quote().usdToPen(), cached.quote().asOf(), false);
 				}
-				return new FxQuote(properties.fallbackUsdPen(), now, false);
+				return new FxQuote(properties.fallbackUsdPen(), now, false, true);
 			}
 		}
 		finally {

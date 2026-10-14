@@ -3,6 +3,8 @@ package com.fufexo.lvl.shared;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
+	private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
 	record FieldMessage(String field, String message) {
 	}
 
@@ -33,6 +37,15 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 			problem.setProperty("errors", List.of(new FieldMessage(ex.field(), ex.getMessage())));
 		}
 		return ResponseEntity.status(ex.status()).body(problem);
+	}
+
+	@ExceptionHandler(Exception.class)
+	ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
+		log.error("Unexpected error", ex);
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
+				"Algo salió mal de nuestro lado. Intenta de nuevo en unos segundos.");
+		problem.setProperty("code", "INTERNAL_ERROR");
+		return ResponseEntity.internalServerError().body(problem);
 	}
 
 	@Override

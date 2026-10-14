@@ -5,6 +5,7 @@ import java.util.UUID;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -71,8 +72,9 @@ class AuthController {
 
 	@PostMapping("/auth/register")
 	@Operation(summary = "Crear cuenta", description = "Abre las cuentas PEN y USD con el bono de bienvenida.")
-	ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-		var session = auth.register(request.gamertag(), request.email(), request.password());
+	ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
+		// Behind Render's proxy, forward-headers-strategy makes this the client's address.
+		var session = auth.register(request.gamertag(), request.email(), request.password(), http.getRemoteAddr());
 		return withRefreshCookie(HttpStatus.CREATED, session);
 	}
 

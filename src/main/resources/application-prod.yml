@@ -14,3 +14,9 @@ spring:
   docker:
     compose:
       enabled: false
+
+# One JSON object per line (Elastic Common Schema): searchable in Render's log explorer.
+logging:
+  structured:
+    format:
+      console: ecs

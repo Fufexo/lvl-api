@@ -1,6 +1,7 @@
 package com.fufexo.lvl.accounts;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 
 import com.fufexo.lvl.ApiTest;
+import com.fufexo.lvl.fx.FxQuote;
 import com.fufexo.lvl.shared.BusinessException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 class TransferApiTest extends ApiTest {
 
@@ -65,6 +68,21 @@ class TransferApiTest extends ApiTest {
 		assertThat(JsonPath.<String>read(bobMovements, "$.items[0].description"))
 			.isEqualTo("Recibido de @" + alice.gamertag() + " · Pizza");
 		assertLedgerIsConsistent();
+	}
+
+	@Test
+	void refusesToExchangeAtAMadeUpRate() {
+		Player player = signUp();
+		given(rates.usdToPen()).willReturn(new FxQuote(new BigDecimal("3.75"), Instant.now(), false, true));
+
+		MvcTestResult result = transfer(player, key(), """
+				{"sourceAccountId": "%s", "targetAccountId": "%s", "amount": 10}
+				""".formatted(player.pen(), player.usd()));
+
+		assertThat(result).hasStatus(HttpStatus.SERVICE_UNAVAILABLE)
+			.bodyJson()
+			.hasPathSatisfying("$.code", (code) -> assertThat(code).asString().isEqualTo("FX_UNAVAILABLE"));
+		assertThat(balance(player, player.pen())).isEqualByComparingTo("500.00");
 	}
 
 	@Test

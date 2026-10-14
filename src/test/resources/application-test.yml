@@ -1,3 +1,6 @@
 lvl:
+  rate-limit:
+    # Every integration test signs up its own players from the same address.
+    max-signups: 100000
   security:
     jwt-secret: test-only-secret-0123456789abcdef0123456789

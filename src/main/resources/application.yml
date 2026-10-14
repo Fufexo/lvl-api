@@ -50,6 +50,11 @@ lvl:
     url: https://open.er-api.com/v6/latest/USD
     ttl: 1h
     fallback-usd-pen: 3.75
+  rate-limit:
+    max-login-failures: 5
+    login-window: 15m
+    max-signups: 5
+    signup-window: 1h
   welcome-bonus:
     pen: 500.00
     usd: 50.00

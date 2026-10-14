@@ -19,6 +19,10 @@ interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
 	Optional<RefreshToken> findByTokenHashForUpdate(String tokenHash);
 
 	@Modifying
+	@Query("delete from RefreshToken t where t.userId = :userId and t.expiresAt < :now")
+	int deleteExpired(UUID userId, Instant now);
+
+	@Modifying
 	@Query("update RefreshToken t set t.revokedAt = :now where t.familyId = :familyId and t.revokedAt is null")
 	int revokeFamily(UUID familyId, Instant now);
 

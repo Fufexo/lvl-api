@@ -19,6 +19,7 @@ import com.fufexo.lvl.shared.Ids;
 import com.fufexo.lvl.shared.Instants;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -111,7 +112,12 @@ class TransferService {
 		BigDecimal fxRate = null;
 		long targetMinor = sourceMinor;
 		if (source.currency() != target.currency()) {
-			fxRate = rates.usdToPen().usdToPen();
+			var quote = rates.usdToPen();
+			if (quote.fallback()) {
+				throw new BusinessException(HttpStatus.SERVICE_UNAVAILABLE, "FX_UNAVAILABLE",
+						"El tipo de cambio no está disponible ahora. Intenta en unos minutos.", "amount");
+			}
+			fxRate = quote.usdToPen();
 			targetMinor = FxConversion.convert(sourceMinor, source.currency(), target.currency(), fxRate);
 			if (targetMinor <= 0) {
 				throw BusinessException.unprocessable("AMOUNT_TOO_SMALL", "El monto es muy pequeño para convertirlo.",

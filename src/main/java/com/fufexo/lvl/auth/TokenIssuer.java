@@ -45,8 +45,9 @@ class TokenIssuer {
 		this.clock = clock;
 	}
 
-	/** Starts a new refresh token family (a new sign-in). */
+	/** Starts a new refresh token family (a new sign-in) and drops the user's expired tokens. */
 	Tokens issue(User user) {
+		refreshTokens.deleteExpired(user.id(), Instants.now(clock));
 		return issue(user, Ids.next());
 	}
 

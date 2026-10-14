@@ -62,6 +62,9 @@ En resumen:
 - **Sin carreras.** Las cuentas de una operación se bloquean (`SELECT … FOR UPDATE`) en orden fijo antes de leer saldos, y la base de datos rechaza saldos negativos aunque el código fallara.
 - **Ids UUID v7:** ordenados por tiempo (índices compactos) y no adivinables.
 - **Hilos virtuales** de Java 21 para atender peticiones.
+- **Contra la fuerza bruta.** Tras 5 contraseñas fallidas para un mismo usuario, el ingreso se pausa 15 minutos (429), y cada dirección puede crear pocas cuentas por hora. Las contraseñas de más de 72 bytes se rechazan, porque BCrypt ignoraría el resto.
+- **Nunca se mueve dinero con un tipo de cambio inventado.** Si el proveedor no respondió nunca, la API muestra un valor de referencia, pero rechaza los cambios de moneda (503) hasta tener un tipo real.
+- **Observabilidad.** Logs estructurados en JSON (ECS) en producción, registro de cada reutilización de refresh token y de cada error inesperado (que al cliente le llega sin detalles internos).
 - **Configuración validada al arrancar:** sin `LVL_JWT_SECRET` de al menos 32 caracteres, la API no levanta.
 
 ## Endpoints
@@ -121,11 +124,12 @@ La API corre en **Render** (Docker, plan gratuito) y la base de datos en **Neon*
 - **Unitarios:** conversión de montos, cambio de moneda con redondeo, balance de asientos y UUID v7.
 - **Módulos:** Spring Modulith verifica los límites entre módulos y genera los diagramas en `target/spring-modulith-docs`.
 - **Integración** contra Postgres real (Testcontainers) a través de HTTP:
-  - registro con bono, unicidad del gamertag sin importar mayúsculas y errores por campo;
+  - registro con bono, unicidad del gamertag sin importar mayúsculas, errores por campo y contraseñas demasiado largas;
+  - pausa del ingreso tras intentos fallidos repetidos;
   - login sin revelar qué usuarios existen;
   - rotación del refresh token, revocación al reutilizarlo y logout;
   - transferencias propias con cambio de moneda y transferencias entre jugadores;
-  - fondos insuficientes, reintentos idempotentes, intentos sobre cuentas ajenas y paginación por cursor;
+  - cambio de moneda rechazado si el tipo de cambio no es real, fondos insuficientes, reintentos idempotentes, intentos sobre cuentas ajenas y paginación por cursor;
   - 20 transferencias simultáneas que nunca dejan la cuenta en negativo;
   - después de cada operación, el invariante "por moneda el libro suma cero y cada saldo coincide con sus asientos".
 
@@ -133,7 +137,7 @@ La API corre en **Render** (Docker, plan gratuito) y la base de datos en **Neon*
 
 - Despliegue en Render + Neon y conexión con el frontend.
 - Tarjetas virtuales, ofertas, misiones y cofres de ahorro.
-- Límite de intentos de login e ingreso con Discord.
+- Ingreso con Discord.
 - Notificaciones por eventos: correo y Web Push.
 
 ## Autor
